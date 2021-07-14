@@ -1,0 +1,637 @@
+
+#include "vm.h"
+
+
+std::vector<Token> VM::Run(const std::string& id, clau_parser::UserType* global,
+	std::unordered_map<std::string, Token> parameter) {
+	Event main = _event_list[id];
+	main.parameter = parameter;
+	std::vector<Token> token_stack;
+	std::vector<Event> _stack;
+
+	_stack.push_back(main);
+	int count = 0;
+	std::string dir = "";
+
+	std::vector<Token> return_value;
+
+	while (!_stack.empty()) {
+		auto& x = _stack.back();
+		count++;
+
+		//std::cout << func_to_str[x.event_data[x.now]] << "\n";
+
+		switch (x.event_data[x.now]) {
+		case FUNC::TRUE:
+		{
+			Token token;
+			token.SetBool(true);
+
+			token_stack.push_back(token);
+		}
+		break;
+		case FUNC::FALSE:
+		{
+			Token token;
+			token.SetBool(false);
+
+			token_stack.push_back(token);
+		}
+		break;
+		case FUNC::FUNC_QUERY:
+		{
+			x.now++;
+
+			auto ut = (*x.input)[x.event_data[x.now]];
+			auto dir = token_stack.back(); token_stack.pop_back();
+
+			auto workspace = this->Find(global, dir.ToString())[0].workspace;
+
+
+			for (int i = 1; i < ut.ut_val->GetUserTypeListSize(); ++i) {
+				if (ut.ut_val->GetUserTypeList(i)->GetName() == "$insert"sv) {
+					this->InsertFunc(workspace.reader->GetUT(), ut.ut_val->GetUserTypeList(i), this);
+				}
+				else if (ut.ut_val->GetUserTypeList(i)->GetName() == "$update"sv) {
+					this->UpdateFunc(workspace.reader->GetUT(), ut.ut_val->GetUserTypeList(i), this);
+				}
+				else if (ut.ut_val->GetUserTypeList(i)->GetName() == "$delete"sv) {
+					this->RemoveFunc(workspace.reader->GetUT(), ut.ut_val->GetUserTypeList(i), this);
+				}
+			}
+		}
+		break;
+		case FUNC::FUNC_GET:
+		{
+			auto token = token_stack.back();
+			token_stack.pop_back();
+
+			if (token.ToString()._Starts_with("$local."sv)) {
+
+				token_stack.push_back(x.local[token.ToString().substr(7)]);
+			}
+
+			else {
+				auto value = FindValue(global, token.ToString()); // ToString?
+
+				token_stack.push_back(value[0]);
+			}
+		}
+
+		break;
+		case FUNC::FUNC_ASSIGN:
+		{
+			auto value = token_stack.back();
+			token_stack.pop_back();
+
+			auto name = token_stack.back();
+			token_stack.pop_back();
+
+			if (name.ToString()._Starts_with("$local."sv)) {
+				x.local[name.ToString().substr(7)] = value;
+			}
+			else if (name.ToString()._Starts_with("$parameter."sv)) {
+				x.parameter[name.ToString().substr(11)] = value;
+			}
+			else {
+				// todo
+			}
+		}
+		break;
+		case FUNC::START_DIR:
+			count = 0;
+			dir = "/";
+			break;
+		case FUNC::DIR:
+			////std::cout << "DIR chk" << token_stack.back().ToString() << "\n";
+		{
+			auto str = token_stack.back().ToString();
+
+			if (str._Starts_with("$parameter."sv)) {
+				str = str.substr(11);
+
+				Token token = x.parameter[str];
+				dir += token.ToString();
+			}
+			else if (str._Starts_with("$local."sv)) {
+				str = str.substr(7);
+
+				Token token = x.local[str];
+				dir += token.ToString();
+			}
+			else {
+				dir += token_stack.back().ToString(); // ToString
+			}
+
+			token_stack.pop_back();
+			dir += "/";
+		}
+
+		break;
+		case FUNC::END_DIR:
+		{
+			Token token;
+
+			if (dir.back() == '/') {
+				token.SetString(dir.substr(0, dir.size() - 1));
+			}
+			else {
+				token.SetString(dir);
+			}
+			token_stack.push_back(token);
+
+			dir = "";
+			count = 0;
+		}
+		break;
+		case FUNC::FUNC_REMOVE_QUOTED:
+		{
+			auto str = token_stack.back().ToString();
+
+			if (str.size() >= 2) {
+				str = str.substr(1, str.size() - 2);
+			}
+			token_stack.pop_back();
+
+			Token temp;
+			temp.SetString(str);
+			token_stack.push_back(temp);
+		}
+		break;
+		case FUNC::FUNC_IS_QUOTED_STR:
+		{
+			auto str = token_stack.back().ToString();
+			bool chk = str.size() >= 2 && (str)[0] == str.back() && str.back() == '\"';
+
+			token_stack.pop_back();
+
+			Token temp;
+
+			temp.SetBool(chk);
+
+			token_stack.push_back(temp);
+			break;
+		}
+		case FUNC::FUNC_RETURN:
+			x.now++;
+
+			//std::cout << "return .... \n";)
+			if (_stack.size() == 1) {
+				std::vector<Token> temp;
+				int count = x.event_data[x.now];
+
+				for (int i = 0; i < count; ++i) {
+					temp.push_back(token_stack.back());
+					token_stack.pop_back();
+				}
+				for (int i = 0; i < temp.size(); ++i) {
+					return_value.push_back(temp[i]);
+				}
+			}
+			_stack.pop_back();
+			break;
+		case FUNC::CONSTANT:
+			x.now++;
+
+			{
+				const auto& value = (*x.input)[x.event_data[x.now]];
+				//std::cout << value.ToString() << "\n";
+
+				if (value.IsString()) {
+					if (value.ToString()._Starts_with("$parameter."sv)) {
+						auto param = value.ToString().substr(11);
+
+						token_stack.push_back(x.parameter[param]);
+
+						x.now++;
+						continue;
+					}
+				}
+
+				{
+					token_stack.push_back(value);
+				}
+			}
+
+			break;
+		case FUNC::FUNC_ADD:
+		{
+			auto a = token_stack.back();
+			token_stack.pop_back();
+			auto b = token_stack.back();
+			token_stack.pop_back();
+
+			{
+				Token token;
+
+				if (a.IsFloat() && b.IsFloat()) {
+					token.SetFloat(a.ToFloat() + b.ToFloat());
+				}
+				else if (a.IsInt() && b.IsInt()) {
+					token.SetInt(a.ToInt() + b.ToInt());
+				}
+
+				token_stack.push_back(token);
+			}
+		}
+		break;
+		case FUNC::FUNC_CALL:
+			x.now++;
+
+			{
+				auto count = x.event_data[x.now];
+
+				x.now++;
+
+				Event e;
+
+				for (int i = 0; i < count; ++i) {
+					auto value = token_stack.back();
+					token_stack.pop_back();
+					auto name = token_stack.back();
+					token_stack.pop_back();
+
+					if (name.ToString() == "id"sv) {
+						e.id = value.ToString();
+
+						//		//std::cout << e.id << "\n";
+
+						e.event_data = _event_list[value.ToString()].event_data;
+						e.input = _event_list[value.ToString()].input;
+						e.now = 0;
+						e.return_value_now = 0;
+
+						break;
+					}
+
+					e.parameter[name.ToString()] = std::move(value); // name.ToString()
+				}
+
+				////std::cout << "call " << e.id << "\n";
+				_stack.push_back(std::move(e));
+			}
+
+			continue;
+
+			break;
+
+			// do not compare bools
+		case FUNC::FUNC_COMP_LEFT:
+			// Compare!
+		{
+			auto a = token_stack.back();
+			token_stack.pop_back();
+			auto b = token_stack.back();
+			token_stack.pop_back();
+
+			{
+				Token token;
+
+				if (a.IsFloat() && b.IsFloat()) {
+					token.SetBool(a.ToFloat() > b.ToFloat());
+				}
+				else if (a.IsInt() && b.IsInt()) {
+					token.SetBool(a.ToInt() > b.ToInt());
+				}
+				else if (a.IsString() && b.IsString()) {
+					token.SetBool(a.ToString() > b.ToString());
+				}
+
+				token_stack.push_back(token);
+			}
+		}
+		break;
+		case FUNC::FUNC_COMP_RIGHT:
+		{
+			auto b = token_stack.back();
+			token_stack.pop_back();
+			auto a = token_stack.back();
+			token_stack.pop_back();
+
+			{
+				Token token;
+
+				if (a.IsFloat() && b.IsFloat()) {
+					token.SetBool(a.ToFloat() < b.ToFloat());
+				}
+				else if (a.IsInt() && b.IsInt()) {
+					token.SetBool(a.ToInt() < b.ToInt());
+				}
+				else if (a.IsString() && b.IsString()) {
+					token.SetBool(a.ToString() < b.ToString());
+				}
+
+				token_stack.push_back(token);
+			}
+		}
+		break;
+		case FUNC::FUNC_FIND:
+		{
+			auto a = token_stack.back();
+			token_stack.pop_back();
+
+			x.return_value = Find(global, a.ToString());
+			x.return_value_now = 0;
+		}
+		break;
+		case FUNC::FUNC_RETURN_VALUE:
+		{
+			token_stack.push_back(x.return_value[x.return_value_now]);
+		}
+		break;
+		case FUNC::FUNC_NEXT:
+			x.return_value_now++;
+			break;
+		case FUNC::FUNC_LOAD_DATA:
+		{
+			std::string fileName = token_stack.back().ToString();
+			fileName = fileName.substr(1, fileName.size() - 2);
+			token_stack.pop_back();
+
+
+			clau_parser::UserType* dir = token_stack.back().workspace.reader->GetUT();
+			token_stack.pop_back();
+
+			// fileName = substr... - todo!
+			clau_parser::LoadData::LoadDataFromFile(fileName, *dir, 0, 0);
+		}
+		break;
+
+		case FUNC::FUNC_ENTER:
+			token_stack.back().workspace.reader->Enter();
+			token_stack.pop_back();
+			break;
+		case FUNC::FUNC_QUIT:
+			token_stack.back().workspace.reader->Quit();
+			token_stack.pop_back();
+			break;
+		case FUNC::FUNC_SET_NAME:
+		{
+			auto name = token_stack.back().ToString();
+
+			token_stack.pop_back();
+
+			token_stack.back().workspace.reader->SetKey(name);
+
+			token_stack.pop_back();
+		}
+		break;
+		case FUNC::FUNC_SET_VALUE:
+		{
+			auto value = token_stack.back().ToString();
+
+			token_stack.pop_back();
+
+			token_stack.back().workspace.reader->SetData(value);
+
+			token_stack.pop_back();
+		}
+		break;
+		case FUNC::FUNC_GET_NAME:
+		{
+			Token token;
+			token.SetString(token_stack.back().workspace.reader->GetKey());
+
+			token_stack.pop_back();
+			token_stack.push_back(token);
+		}
+		break;
+		case FUNC::FUNC_GET_VALUE:
+		{
+			Token token;
+			token.SetString(token_stack.back().workspace.reader->GetData());
+
+			token_stack.pop_back();
+			token_stack.push_back(token);
+		}
+		break;
+		case FUNC::FUNC_GET_IDX:
+		{
+			Token token;
+			token.SetInt(token_stack.back().workspace.reader->GetIdx());
+
+			token_stack.pop_back();
+			token_stack.push_back(token);
+		}
+		break;
+
+		case FUNC::FUNC_SET_IDX:
+		{
+			//auto a = std::stoll(x.input[x.event_data[x.now]].ToString());
+
+			auto a = token_stack.back().ToInt();
+			token_stack.pop_back();
+
+			auto space = token_stack.back().workspace;
+			token_stack.pop_back();
+
+			space.reader->SetIndex(a);
+		}
+		break;
+
+		case FUNC::FUNC_WHILE:
+		{
+			//std::cout << "WHILE.... \n";
+		}
+		break;
+
+		case FUNC::FUNC_AND_ALL:
+		{
+			x.now++;
+			auto count = x.event_data[x.now];
+			bool result = true;
+
+			for (int i = 0; i < count; i += 1) {
+				bool b = token_stack.back().ToBool();
+				result = result && b;
+				token_stack.pop_back();
+			}
+
+			Token temp;
+			temp.SetBool(result);
+
+			token_stack.push_back(temp);
+		}
+		break;
+		case FUNC::FUNC_AND:
+		{
+			bool result = true;
+
+			for (int i = 0; i < 2; i += 1) {
+				bool b = token_stack.back().ToBool();
+				result = result && b;
+				token_stack.pop_back();
+			}
+
+			Token temp;
+			temp.SetBool(result);
+
+			token_stack.push_back(temp);
+		}
+
+		break;
+		case FUNC::FUNC_OR:
+		{
+			bool result = true;
+
+			for (int i = 0; i < 2; i += 1) {
+				bool b = token_stack.back().ToBool();
+				result = result || b;
+				token_stack.pop_back();
+			}
+
+			Token temp;
+
+			temp.SetBool(result);
+
+			token_stack.push_back(temp);
+		}
+		break;
+		case FUNC::FUNC_GET_NOW:
+		{
+			auto space = token_stack.back().workspace;
+			token_stack.pop_back();
+
+			Token temp;
+			temp.SetWorkspace(space.reader);
+
+
+			token_stack.push_back(temp);
+
+		}
+		break;
+
+		case FUNC::THEN:
+		{
+			auto param = token_stack.back().ToBool(); // bool
+			token_stack.pop_back();
+
+			if (param) {
+				x.now++;
+			}
+			else {
+				x.now++;
+
+				x.now = x.event_data[x.now];
+
+				x.now--;
+			}
+		}
+		break;
+		case FUNC::WHILE_END:
+		{
+			x.now++;
+			x.now = x.event_data[x.now];
+
+			//std::cout << "chk .. " << func_to_str[x.event_data[x.now]] << "\n";
+
+			x.now--;
+		}
+		break;
+		case FUNC::FUNC_IF:
+		{
+			//
+		}
+		break;
+
+		case FUNC::IF_END:
+		{
+			//
+		}
+		break;
+		case FUNC::FUNC_IS_END:
+		{
+			Token token;
+
+			token.SetInt(x.return_value_now >= x.return_value.size());
+
+			token_stack.push_back(token);
+		}
+		break;
+		case FUNC::FUNC_NOT:
+		{
+			auto a = token_stack.back();
+			token_stack.pop_back();
+
+			a.SetBool(!a.ToBool());
+
+			token_stack.push_back(a);
+		}
+		break;
+		case FUNC::FUNC_IS_GROUP:
+		{
+			Token token;
+
+			token.SetBool(token_stack.back().workspace.reader->IsGroup());
+
+			token_stack.pop_back();
+
+			token_stack.push_back(token);
+		}
+		break;
+		case FUNC::FUNC_IS_ITEM:
+		{
+			Token token;
+
+			token.SetBool(!token_stack.back().workspace.reader->IsGroup());
+
+			token_stack.pop_back();
+
+			token_stack.push_back(token);
+		}
+		break;
+		case FUNC::FUNC_GET_SIZE:
+		{
+			Token token;
+			token.SetString(std::to_string(token_stack.back().workspace.reader->Length()));
+			token_stack.pop_back();
+
+			token_stack.push_back(token);
+
+			break;
+		}
+		case FUNC::FUNC_CLONE:
+		{
+			auto a = token_stack.back().workspace;
+			token_stack.pop_back();
+
+			Token b;
+			b.workspace.reader = wiz::SmartPtr<clau_parser::Reader>(new clau_parser::Reader(*a.reader));
+			token_stack.push_back(b);
+		}
+		break;
+
+		case FUNC::FUNC_PRINT:
+		{
+			x.now++;
+
+			std::vector<Token> vec;
+
+			if (x.event_data[x.now] > 0) {
+				vec.reserve(x.event_data[x.now]);
+			}
+
+			for (int i = 0; i < x.event_data[x.now]; ++i) {
+				vec.push_back(token_stack.back());
+				token_stack.pop_back();
+			}
+			for (int i = vec.size() - 1; i >= 0; --i) {
+				if (vec[i].ToString() == "\\n"sv) {
+					std::cout << "\n";
+				}
+				else {
+					std::cout << vec[i].ToString();
+				}
+			}
+		}
+		break;
+		default:
+			//std::cout << "error \n";
+			break;;
+
+		}
+		x.now++;
+	}
+
+	return return_value;
+}
