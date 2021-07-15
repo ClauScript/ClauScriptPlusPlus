@@ -30,7 +30,7 @@ int main(void)
 	vm.Run("main", &global);
 
 	int last = clock();
-		std::cout << last - start << "ms\n";
+	std::cout << last - start << "ms\n";
 	
 	clau_parser::LoadData::Save(global, "output.eu4");
 

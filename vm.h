@@ -21,7 +21,7 @@ using namespace std::literals;
 
 
 enum FUNC {
-	TRUE = 0, FALSE, FUNC_QUERY, FUNC_ASSIGN, FUNC_GET, FUNC_FIND, FUNC_WHILE, FUNC_RETURN_VALUE, FUNC_IS_END, FUNC_NOT,
+	TRUE = 0, FALSE, FUNC_SEARCH, FUNC_QUERY, FUNC_ASSIGN, FUNC_GET, FUNC_FIND, FUNC_WHILE, FUNC_RETURN_VALUE, FUNC_IS_END, FUNC_NOT,
 	FUNC_LOAD_DATA, FUNC_ENTER, FUNC_CALL, FUNC_NEXT, FUNC_RETURN, FUNC_COMP_RIGHT,
 	FUNC_ADD, FUNC_GET_IDX, FUNC_GET_SIZE, FUNC_GET_NOW, FUNC_CLONE, FUNC_QUIT, FUNC_IF, FUNC_IS_ITEM,
 	FUNC_IS_GROUP, FUNC_SET_IDX, FUNC_AND_ALL, FUNC_AND, FUNC_OR, FUNC_IS_QUOTED_STR, FUNC_COMP_LEFT, FUNC_SET_NAME, FUNC_GET_NAME, FUNC_GET_VALUE,
@@ -29,7 +29,7 @@ enum FUNC {
 	KEY, VALUE, SIZE // chk?
 };
 inline const char* func_to_str[FUNC::SIZE] = {
-	"TRUE", "FALSE", "QUERY",
+	"TRUE", "FALSE", "SEARCH", "QUERY",
 	"ASSIGN",
 	"GET",
 	"FIND", "WHILE", "RETURN_VALUE", "IS_END", "NOT", "LOAD_DATA", "ENTER", "CALL", "NEXT", "RETURN", "COMP_RIGHT",
@@ -87,6 +87,12 @@ public:
 			return str_val;
 		}
 
+
+		if (type & Type::BOOL) {
+			str_val = int_val ? "TRUE" : "FALSE";
+			type = static_cast<Type>(type | Type::STRING);
+			return str_val;
+		}
 		// throw error?
 
 		return str_val;
@@ -285,13 +291,14 @@ private:
 	public:
 		clau_parser::UserType* global;
 		clau_parser::UserType* ut;
+		clau_parser::UserType* dest;
 		std::string dir;
 		long long itCount = 0;
 		long long utCount = 0;
 		long long count = 0;
 	public:
-		UtInfo(clau_parser::UserType* global, clau_parser::UserType* ut, const std::string& dir, long long itCount = 0, long long utCount = 0)
-			: global(global), ut(ut), itCount(itCount), utCount(utCount), count(0), dir(dir)
+		UtInfo(clau_parser::UserType* global, clau_parser::UserType* ut, const std::string& dir, clau_parser::UserType* dest = nullptr, long long itCount = 0, long long utCount = 0)
+			: global(global), ut(ut), itCount(itCount), utCount(utCount), count(0), dir(dir), dest(dest)
 		{
 			//
 		}
@@ -316,6 +323,9 @@ private:
 	bool RemoveFunc(clau_parser::UserType* global, clau_parser::UserType* insert_ut, VM* vm);
 
 	bool UpdateFunc(clau_parser::UserType* global, clau_parser::UserType* insert_ut, VM* vm);
+
+	bool SearchFunc(clau_parser::UserType* global, clau_parser::UserType* insert_ut, clau_parser::UserType* dest, VM* vm);
+
 
 	std::pair<bool, std::vector<clau_parser::UserType*> > _Find(clau_parser::UserType* global, const std::string& _position) /// option, option_offset
 	{

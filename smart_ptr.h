@@ -9,7 +9,6 @@
 
 namespace wiz {
 
-
     template < class T >
     class SmartPtr
     {
@@ -208,6 +207,7 @@ namespace wiz {
             return this->inner == wsp.inner;
         }
     };
+
 }
 
 #endif

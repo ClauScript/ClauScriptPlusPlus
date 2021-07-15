@@ -275,7 +275,7 @@ void _MakeByteCode(clau_parser::UserType* ut, Event* e) {
 				call_flag = true;
 			}
 
-			if (name != "$query"sv) {
+			if (name != "$query"sv && name != "$search"sv) {
 				_MakeByteCode(ut->GetUserTypeList(ut_count), e);
 			}
 
@@ -285,7 +285,23 @@ void _MakeByteCode(clau_parser::UserType* ut, Event* e) {
 
 					token.SetFunc(); // | Token::Type::UserType
 
-					if (name == "$query"sv) {
+					if (name == "$search"sv) {
+						_MakeByteCode(ut->GetUserTypeList(ut_count)->GetUserTypeList(0), e);
+						_MakeByteCode(ut->GetUserTypeList(ut_count)->GetUserTypeList(1), e);
+
+						token.func = FUNC::FUNC_SEARCH;
+
+						e->event_data.push_back(FUNC::FUNC_SEARCH);
+
+						{
+							Token temp;
+							temp.ut_val = wiz::SmartPtr<clau_parser::UserType>(new clau_parser::UserType(*ut->GetUserTypeList(ut_count)));
+
+							e->input->push_back(temp);
+							e->event_data.push_back(e->input->size() - 1);
+						}
+					}
+					else if (name == "$query"sv) {
 						_MakeByteCode(ut->GetUserTypeList(ut_count)->GetUserTypeList(0), e);
 
 						token.func = FUNC::FUNC_QUERY;
@@ -528,6 +544,8 @@ Event MakeByteCode(clau_parser::UserType* ut) {
 
 
 	e.event_data.push_back(FUNC::FUNC_RETURN);
+	e.event_data.push_back(0);
+
 	e.id = ut->GetItem("id")[0].Get();
 
 	Debug(e);

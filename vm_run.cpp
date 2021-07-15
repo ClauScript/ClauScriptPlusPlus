@@ -38,6 +38,22 @@ std::vector<Token> VM::Run(const std::string& id, clau_parser::UserType* global,
 			token_stack.push_back(token);
 		}
 		break;
+		case FUNC::FUNC_SEARCH:
+		{
+			x.now++;
+
+			auto ut = (*x.input)[x.event_data[x.now]];
+			auto to = token_stack.back(); token_stack.pop_back();
+			auto dir = token_stack.back(); token_stack.pop_back();
+
+			auto workspace = this->Find(global, dir.ToString())[0].workspace;
+			auto dest = this->Find(global, to.ToString())[0].workspace;
+
+			for (int i = 2; i < ut.ut_val->GetUserTypeListSize(); ++i) {
+				this->SearchFunc(workspace.reader->GetUT(), ut.ut_val->GetUserTypeList(i), dest.reader->GetUT(), this);
+			}
+		}
+		break;
 		case FUNC::FUNC_QUERY:
 		{
 			x.now++;
