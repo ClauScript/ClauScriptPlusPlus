@@ -296,6 +296,7 @@ private:
 		long long itCount = 0;
 		long long utCount = 0;
 		long long count = 0;
+		
 	public:
 		UtInfo(clau_parser::UserType* global, clau_parser::UserType* ut, const std::string& dir, clau_parser::UserType* dest = nullptr, long long itCount = 0, long long utCount = 0)
 			: global(global), ut(ut), itCount(itCount), utCount(utCount), count(0), dir(dir), dest(dest)

@@ -56,7 +56,7 @@ Event = { id = main
 	$assign = { $local.x $return_value = { } }
 	
 	$load_data = { @$local.x@$get "C:\Users\vztpv\Desktop\Clau\ClauParser\ClauParser\input.eu4" }
-	
+	#
 	## call
 	$call = { id = iterate workspace = @$local.x@$get@$clone  event = test } # @$return_value ??
 	
@@ -117,16 +117,12 @@ Event = { id = main
 	}
 	
 	$search = {
-		workspace = { /data }
+		workspace = { /Test/eu4/provinces }
 		to = { /output }
 		cond = {
-			@x = %any
-			
-			provinces = {
-				$ = {
-					y = !%any
-					@x = %any
-				}	
+			@$ = {
+				is_city = yes
+				owner = DAN
 			}
 		}
 	}
