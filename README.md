@@ -40,6 +40,8 @@
 
     # ToDo - end of function.?  $find = { @eu4 } FUNC_FIND DIR_START DIR END_DIR (END_FUNC?)
 
+    # DONE?? - Search - Query?
+
     # DONE - Print, number of param.
     # DONE - Query..
 
@@ -65,8 +67,12 @@
 
     }
 
-    Event = { id = test2 
-        $print = { @/./x@$get \n }
+    output = {
+
+    }
+
+    Event = { id = test2 $parameter = { name value is_user_type }
+
         $return = { 1 }
     }
 
@@ -87,7 +93,7 @@
         $assign = { $local.x $return_value = { } }
 
         $load_data = { @$local.x@$get "C:\Users\vztpv\Desktop\Clau\ClauParser\ClauParser\input.eu4" }
-
+        #
         ## call
         $call = { id = iterate workspace = @$local.x@$get@$clone  event = test } # @$return_value ??
 
@@ -146,17 +152,26 @@
             #	}
             #}
         }
+
+        $search = {
+            workspace = { /Test/eu4/provinces }
+            to = { /output }
+            cond = {
+                @$ = {
+                    is_city = yes
+                    owner = DAN
+                }
+            }
+        }
     }
 
-    Event = { id = iterate
-
-        $parameter = { workspace event } # recursive?
+    Event = { id = iterate $parameter = { workspace event } # recursive?
 
         $set_idx = { @$parameter.workspace 0 }
 
         $while { $COMP< = { $get_idx = { @$parameter.workspace } $get_size = { @$parameter.workspace } } } 
         {	
-            $call = { id = $parameter.event 
+            $call = { id = $parameter.event                                  
                 iter = @$parameter.workspace
                 name = @$parameter.workspace@$get_name 
                 value = @$parameter.workspace@$get_value
@@ -172,9 +187,7 @@
         }
     }
 
-    Event = { id = test
-
-        $parameter = { iter name value is_user_type }	
+    Event = { id = test $parameter = { iter name value is_user_type }	
 
         $if { 
                 $AND_ALL = { 
@@ -244,4 +257,5 @@
             $set_value = { @$parameter.iter $remove_quoted = { $parameter.value } }
         }
     }
+
 
