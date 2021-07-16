@@ -154,7 +154,7 @@ bool VM::_InsertFunc(clau_parser::UserType* global, clau_parser::UserType* inser
 
 				for (long long j = 0; j < usertype.size(); ++j) {
 					que.push(UtInfo(x.global->GetUserTypeList(usertype[j]), x.ut->GetUserTypeList(ut_count - 1),
-						x.dir + "/$ut" + std::to_string(usertype[j])));
+						x.dir + "/%ut" + std::to_string(usertype[j])));
 				}
 
 				continue;
@@ -245,7 +245,7 @@ bool VM::_RemoveFunc(clau_parser::UserType* global, clau_parser::UserType* inser
 					bool chk = false;
 					
 					for (long long j = 0; j < x.global->GetUserTypeListSize(); ++j) {
-						//que.push(UtInfo(x.global->GetUserTypeList(j), x.ut->GetUserTypeList(ut_count), x.dir + "$ut" + std::to_string(j)));
+						//que.push(UtInfo(x.global->GetUserTypeList(j), x.ut->GetUserTypeList(ut_count), x.dir + "%ut" + std::to_string(j)));
 						chk = chk || _RemoveFunc(x.global->GetUserTypeList(j), x.ut->GetUserTypeList(ut_count), vm);
 					}
 					
@@ -269,7 +269,7 @@ bool VM::_RemoveFunc(clau_parser::UserType* global, clau_parser::UserType* inser
 
 				for (long long j = 0; j < usertype.size(); ++j) {
 					que.push(UtInfo(x.global->GetUserTypeList(usertype[j]), x.ut->GetUserTypeList(ut_count - 1),
-						x.dir + "/$ut" + std::to_string(usertype[j])));
+						x.dir + "/%ut" + std::to_string(usertype[j])));
 				}
 
 				continue;
@@ -375,7 +375,7 @@ bool VM::_UpdateFunc(clau_parser::UserType* global, clau_parser::UserType* inser
 
 				for (long long j = 0; j < usertype.size(); ++j) {
 					que.push(UtInfo(x.global->GetUserTypeList(usertype[j]), x.ut->GetUserTypeList(ut_count - 1),
-						x.dir + "/$ut" + std::to_string(usertype[j])));
+						x.dir + "/%ut" + std::to_string(usertype[j])));
 				}
 
 				continue;
@@ -482,7 +482,7 @@ bool VM::InsertFunc(clau_parser::UserType* global, clau_parser::UserType* insert
 						for (long long j = 0; j < x.global->GetUserTypeListSize(); ++j) {
 							if (_InsertFunc(x.global->GetUserTypeList(j), x.ut->GetUserTypeList(ut_count), vm)) {
 								que.push(UtInfo(x.global->GetUserTypeList(j), x.ut->GetUserTypeList(ut_count)
-									, x.dir + "/$ut" + std::to_string(j)
+									, x.dir + "/%ut" + std::to_string(j)
 								));
 							}
 						}
@@ -494,7 +494,7 @@ bool VM::InsertFunc(clau_parser::UserType* global, clau_parser::UserType* insert
 						for (long long j = 0; j < usertype.size(); ++j) {
 							if (_InsertFunc(x.global->GetUserTypeList(usertype[j]), x.ut->GetUserTypeList(ut_count), vm)) {
 								que.push(UtInfo(x.global->GetUserTypeList(usertype[j]), x.ut->GetUserTypeList(ut_count),
-									x.dir + "/$ut" + std::to_string(usertype[j])));
+									x.dir + "/%ut" + std::to_string(usertype[j])));
 							}
 						}
 					}
@@ -505,7 +505,7 @@ bool VM::InsertFunc(clau_parser::UserType* global, clau_parser::UserType* insert
 					for (long long j = 0; j < usertype.size(); ++j) {
 						//if (_InsertFunc(x.global->GetUserTypeList(usertype[j]), x.ut->GetUserTypeList(ut_count), eventUT)) {
 						que.push(UtInfo(x.global->GetUserTypeList(usertype[j]), x.ut->GetUserTypeList(ut_count),
-							x.dir + "/$ut" + std::to_string(usertype[j])));
+							x.dir + "/%ut" + std::to_string(usertype[j])));
 						//}
 					}
 				}
@@ -668,7 +668,7 @@ bool VM::RemoveFunc(clau_parser::UserType* global, clau_parser::UserType* insert
 						for (long long j = 0; j < x.global->GetUserTypeListSize(); ++j) {
 							if (_InsertFunc(x.global->GetUserTypeList(j), x.ut->GetUserTypeList(ut_count), vm)) {
 								que.push(UtInfo(x.global->GetUserTypeList(j), x.ut->GetUserTypeList(ut_count)
-									, x.dir + "/$ut" + std::to_string(j)
+									, x.dir + "/%ut" + std::to_string(j)
 								));
 							}
 						}
@@ -679,7 +679,7 @@ bool VM::RemoveFunc(clau_parser::UserType* global, clau_parser::UserType* insert
 						for (long long j = 0; j < usertype.size(); ++j) {
 							if (_InsertFunc(x.global->GetUserTypeList(usertype[j]), x.ut->GetUserTypeList(ut_count), vm)) {
 								que.push(UtInfo(x.global->GetUserTypeList(usertype[j]), x.ut->GetUserTypeList(ut_count),
-									x.dir + "/$ut" + std::to_string(usertype[j])));
+									x.dir + "/%ut" + std::to_string(usertype[j])));
 							}
 						}
 					}
@@ -690,7 +690,7 @@ bool VM::RemoveFunc(clau_parser::UserType* global, clau_parser::UserType* insert
 					for (long long j = 0; j < usertype.size(); ++j) {
 						//if (_RemoveFunc(x.global->GetUserTypeList(usertype[j]), x.ut->GetUserTypeList(ut_count), eventUT)) {
 						que.push(UtInfo(x.global->GetUserTypeList(usertype[j]), x.ut->GetUserTypeList(ut_count),
-							x.dir + "/$ut" + std::to_string(usertype[j])));
+							x.dir + "/%ut" + std::to_string(usertype[j])));
 						//}
 					}
 				}
@@ -799,7 +799,7 @@ bool VM::UpdateFunc(clau_parser::UserType* global, clau_parser::UserType* insert
 						for (long long j = 0; j < x.global->GetUserTypeListSize(); ++j) {
 							if (_InsertFunc(x.global->GetUserTypeList(j), x.ut->GetUserTypeList(ut_count), vm)) {
 								que.push(UtInfo(x.global->GetUserTypeList(j), x.ut->GetUserTypeList(ut_count)
-									, x.dir + "/$ut" + std::to_string(j)
+									, x.dir + "/%ut" + std::to_string(j)
 								));
 							}
 						}
@@ -811,7 +811,7 @@ bool VM::UpdateFunc(clau_parser::UserType* global, clau_parser::UserType* insert
 						for (long long j = 0; j < usertype.size(); ++j) {
 							if (_InsertFunc(x.global->GetUserTypeList(usertype[j]), x.ut->GetUserTypeList(ut_count), vm)) {
 								que.push(UtInfo(x.global->GetUserTypeList(usertype[j]), x.ut->GetUserTypeList(ut_count),
-									x.dir + "/$ut" + std::to_string(usertype[j])));
+									x.dir + "/%ut" + std::to_string(usertype[j])));
 							}
 						}
 					}
@@ -822,7 +822,7 @@ bool VM::UpdateFunc(clau_parser::UserType* global, clau_parser::UserType* insert
 					for (long long j = 0; j < usertype.size(); ++j) {
 						//if (_UpdateFunc(x.global->GetUserTypeList(usertype[j]), x.ut->GetUserTypeList(ut_count), eventUT)) {
 						que.push(UtInfo(x.global->GetUserTypeList(usertype[j]), x.ut->GetUserTypeList(ut_count),
-							x.dir + "/$ut" + std::to_string(usertype[j])));
+							x.dir + "/%ut" + std::to_string(usertype[j])));
 						//	}
 					}
 				}
@@ -948,7 +948,7 @@ bool VM::SearchFunc(clau_parser::UserType* global, clau_parser::UserType* insert
 							if (_RemoveFunc(x.global->GetUserTypeList(j), x.ut->GetUserTypeList(ut_count), vm)) {
 								//x.dest->AddUserTypeItem(clau_parser::UserType(x.global->GetUserTypeList(j)->GetName()));
 								que.push(UtInfo(x.global->GetUserTypeList(j), x.ut->GetUserTypeList(ut_count)
-									, x.dir + "/$ut" + std::to_string(j), x.dest // , x.dest->GetUserTypeList(x.dest->GetUserTypeListSize() - 1)
+									, x.dir + "/%ut" + std::to_string(j), x.dest // , x.dest->GetUserTypeList(x.dest->GetUserTypeListSize() - 1)
 								));
 
 								//x.dest->AddItem("", "$NONAME");
@@ -963,7 +963,7 @@ bool VM::SearchFunc(clau_parser::UserType* global, clau_parser::UserType* insert
 							if (_RemoveFunc(x.global->GetUserTypeList(usertype[j]), x.ut->GetUserTypeList(ut_count), vm)) {
 								//x.dest->AddUserTypeItem(clau_parser::UserType(name));
 								que.push(UtInfo(x.global->GetUserTypeList(usertype[j]), x.ut->GetUserTypeList(ut_count),
-									x.dir + "/$ut" + std::to_string(usertype[j]), x.dest)); //, x.dest->GetUserTypeList(x.dest->GetUserTypeListSize() - 1)));
+									x.dir + "/%ut" + std::to_string(usertype[j]), x.dest)); //, x.dest->GetUserTypeList(x.dest->GetUserTypeListSize() - 1)));
 							
 								//x.dest->AddItem("", name);
 							}
@@ -980,7 +980,7 @@ bool VM::SearchFunc(clau_parser::UserType* global, clau_parser::UserType* insert
 						//x.dest->AddItem("", x.ut->GetUserTypeList(ut_count)->GetName());
 
 						que.push(UtInfo(x.global->GetUserTypeList(usertype[j]), x.ut->GetUserTypeList(ut_count),
-							x.dir + "/$ut" + std::to_string(usertype[j]), x.dest));
+							x.dir + "/%ut" + std::to_string(usertype[j]), x.dest));
 						//}
 					}
 				}
@@ -997,7 +997,7 @@ bool VM::SearchFunc(clau_parser::UserType* global, clau_parser::UserType* insert
 								//x.dest->AddUserTypeItem(clau_parser::UserType(x.global->GetUserTypeList(j)->GetName()));
 							x.dest->AddItem("", x.global->GetUserTypeList(j)->GetName());
 								que.push(UtInfo(x.global->GetUserTypeList(j), x.ut->GetUserTypeList(ut_count)
-									, x.dir + "/$ut" + std::to_string(j), x.dest//->GetUserTypeList(x.dest->GetUserTypeListSize() - 1)
+									, x.dir + "/%ut" + std::to_string(j), x.dest//->GetUserTypeList(x.dest->GetUserTypeListSize() - 1)
 								));
 							}
 						}
@@ -1012,7 +1012,7 @@ bool VM::SearchFunc(clau_parser::UserType* global, clau_parser::UserType* insert
 							if (_RemoveFunc(x.global->GetUserTypeList(usertype[j]), x.ut->GetUserTypeList(ut_count), vm)) {
 								x.dest->AddUserTypeItem(clau_parser::UserType(name));
 								que.push(UtInfo(x.global->GetUserTypeList(usertype[j]), x.ut->GetUserTypeList(ut_count),
-									x.dir + "/$ut" + std::to_string(usertype[j]), x.dest)); // ->GetUserTypeList(x.dest->GetUserTypeListSize() - 1)));
+									x.dir + "/%ut" + std::to_string(usertype[j]), x.dest)); // ->GetUserTypeList(x.dest->GetUserTypeListSize() - 1)));
 							}
 						}
 					}
@@ -1025,7 +1025,7 @@ bool VM::SearchFunc(clau_parser::UserType* global, clau_parser::UserType* insert
 						x.dest->AddItem("", x.global->GetUserTypeList(usertype[j])->GetName());
 
 						que.push(UtInfo(x.global->GetUserTypeList(usertype[j]), x.ut->GetUserTypeList(ut_count),
-							x.dir + "/$ut" + std::to_string(usertype[j]), x.dest)); // ->GetUserTypeList(x.dest->GetUserTypeListSize() - 1)));
+							x.dir + "/%ut" + std::to_string(usertype[j]), x.dest)); // ->GetUserTypeList(x.dest->GetUserTypeListSize() - 1)));
 						//	}
 					}
 				}

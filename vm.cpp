@@ -31,7 +31,7 @@ std::vector<Token> FindValue(clau_parser::UserType* ut, const std::string& str)
 		for (int i = 0; i < x.second.size(); ++i) {
 			std::string itemName = str.substr(idx + 1);
 
-			if (itemName._Starts_with("$it") && itemName.size() >= 4) {
+			if (itemName._Starts_with("%it") && itemName.size() >= 4) {
 				int itemIdx = std::stoi(itemName.substr(3));
 
 				Token temp;
@@ -285,7 +285,32 @@ void _MakeByteCode(clau_parser::UserType* ut, Event* e) {
 
 					token.SetFunc(); // | Token::Type::UserType
 
-					if (name == "$search"sv) {
+					if (name == "$is_int"sv) {
+						token.func = FUNC::FUNC_IS_INT;
+
+						e->event_data.push_back(FUNC::FUNC_IS_INT);
+					}
+					else if (name == "$split"sv) {
+						token.func = FUNC::FUNC_SPLIT;
+
+						e->event_data.push_back(FUNC::FUNC_SPLIT);
+					}
+					else if (name == "$clear_global"sv) {
+						token.func = FUNC::FUNC_CLEAR_GLOBAL;
+
+						e->event_data.push_back(FUNC::FUNC_CLEAR_GLOBAL);
+					}
+					else if (name == "$remove"sv) {
+						token.func = FUNC::FUNC_REMOVE;
+
+						e->event_data.push_back(FUNC::FUNC_REMOVE);
+					}
+					else if (name == "$count_global"sv) {
+						token.func = FUNC::FUNC_COUNT_GLOBAL;
+
+						e->event_data.push_back(FUNC::FUNC_COUNT_GLOBAL);
+					}
+					else if (name == "$search"sv) {
 						_MakeByteCode(ut->GetUserTypeList(ut_count)->GetUserTypeList(0), e);
 						_MakeByteCode(ut->GetUserTypeList(ut_count)->GetUserTypeList(1), e);
 
@@ -342,6 +367,11 @@ void _MakeByteCode(clau_parser::UserType* ut, Event* e) {
 						token.func = FUNC::FUNC_GET;
 
 						e->event_data.push_back(FUNC::FUNC_GET);
+					}
+					else if (name == "$get_global"sv) {
+						token.func = FUNC::FUNC_GET_GLOBAL;
+
+						e->event_data.push_back(FUNC::FUNC_GET_GLOBAL);
 					}
 					else if (name == "$get_name"sv) {
 						token.func = FUNC::FUNC_GET_NAME;

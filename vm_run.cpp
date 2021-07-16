@@ -8,6 +8,8 @@ std::vector<Token> VM::Run(const std::string& id, clau_parser::UserType* global,
 	main.parameter = parameter;
 	std::vector<Token> token_stack;
 	std::vector<Event> _stack;
+	
+	std::unordered_map<std::string, std::vector<Token>> global_var;
 
 	_stack.push_back(main);
 	int count = 0;
@@ -27,7 +29,7 @@ std::vector<Token> VM::Run(const std::string& id, clau_parser::UserType* global,
 			Token token;
 			token.SetBool(true);
 
-			token_stack.push_back(token);
+			token_stack.push_back(std::move(token));
 		}
 		break;
 		case FUNC::FALSE:
@@ -35,7 +37,88 @@ std::vector<Token> VM::Run(const std::string& id, clau_parser::UserType* global,
 			Token token;
 			token.SetBool(false);
 
-			token_stack.push_back(token);
+			token_stack.push_back(std::move(token));
+		}
+		break;
+		case FUNC::FUNC_IS_INT:
+		{
+			auto token = token_stack.back(); token_stack.pop_back();
+
+			token.SetBool(token.IsInt());
+
+			token_stack.push_back(std::move(token));
+		}
+		break;
+		case FUNC::FUNC_SPLIT:
+		{
+			auto divider = token_stack.back(); token_stack.pop_back();
+			char ch = divider.ToString()[0];
+
+			auto dir = token_stack.back(); token_stack.pop_back();
+			auto& dest = global_var[dir.ToString()];
+
+			auto str = token_stack.back().ToString(); token_stack.pop_back();
+
+			auto arr = clau_parser::tokenize(str, ch);
+
+			for (const auto& _ : arr) {
+				Token token;
+				token.SetString(_);
+				dest.push_back(std::move(token));
+			}
+		}
+		break;
+		case FUNC::FUNC_GET_GLOBAL:
+		{
+			auto idx = token_stack.back().ToInt(); token_stack.pop_back();
+
+			auto dir = token_stack.back().ToString(); token_stack.pop_back();
+
+			token_stack.push_back(global_var[dir][idx]);
+		}
+		break;
+		case FUNC::FUNC_MAKE_GLOBAL:
+		{
+			auto dir = token_stack.back(); token_stack.pop_back();
+			
+			global_var[dir.ToString()] = std::vector<Token>();
+		}
+		break;
+		case FUNC::FUNC_CLEAR_GLOBAL:
+		{
+			auto dir = token_stack.back(); token_stack.pop_back();
+
+			auto& dest = global_var[dir.ToString()];
+	
+			dest.clear();
+		}
+		break;	
+		case FUNC::FUNC_REMOVE:
+		{
+			auto dir = token_stack.back(); token_stack.pop_back();
+
+			auto arr = Find(global, dir.ToString());
+
+			for (int i = 0; i < arr.size(); ++i) {
+				auto ut = arr[i].workspace.reader->GetUT();
+				auto parent = ut->GetParent();
+
+				for (int j = 0; j < parent->GetUserTypeListSize(); ++j) {
+					if (parent->GetUserTypeList(j) == ut) {
+						parent->RemoveUserTypeList(j);
+					}
+				}
+			}
+		}
+		break; 
+		case FUNC::FUNC_COUNT_GLOBAL:
+		{
+			auto dir = token_stack.back(); token_stack.pop_back();
+
+			auto arr = global_var[dir.ToString()];
+			Token token;
+			token.SetInt(arr.size());
+			token_stack.push_back(std::move(token));
 		}
 		break;
 		case FUNC::FUNC_SEARCH:
@@ -110,7 +193,7 @@ std::vector<Token> VM::Run(const std::string& id, clau_parser::UserType* global,
 				x.parameter[name.ToString().substr(11)] = value;
 			}
 			else {
-				// todo
+				/// todo!
 			}
 		}
 		break;
@@ -154,7 +237,7 @@ std::vector<Token> VM::Run(const std::string& id, clau_parser::UserType* global,
 			else {
 				token.SetString(dir);
 			}
-			token_stack.push_back(token);
+			token_stack.push_back(std::move(token));
 
 			dir = "";
 			count = 0;
@@ -171,7 +254,7 @@ std::vector<Token> VM::Run(const std::string& id, clau_parser::UserType* global,
 
 			Token temp;
 			temp.SetString(str);
-			token_stack.push_back(temp);
+			token_stack.push_back(std::move(temp));
 		}
 		break;
 		case FUNC::FUNC_IS_QUOTED_STR:
@@ -185,7 +268,7 @@ std::vector<Token> VM::Run(const std::string& id, clau_parser::UserType* global,
 
 			temp.SetBool(chk);
 
-			token_stack.push_back(temp);
+			token_stack.push_back(std::move(temp));
 			break;
 		}
 		case FUNC::FUNC_RETURN:
@@ -247,7 +330,7 @@ std::vector<Token> VM::Run(const std::string& id, clau_parser::UserType* global,
 					token.SetInt(a.ToInt() + b.ToInt());
 				}
 
-				token_stack.push_back(token);
+				token_stack.push_back(std::move(token));
 			}
 		}
 		break;
@@ -304,16 +387,16 @@ std::vector<Token> VM::Run(const std::string& id, clau_parser::UserType* global,
 				Token token;
 
 				if (a.IsFloat() && b.IsFloat()) {
-					token.SetBool(a.ToFloat() > b.ToFloat());
+					token.SetBool(b.ToFloat() > a.ToFloat());
 				}
 				else if (a.IsInt() && b.IsInt()) {
-					token.SetBool(a.ToInt() > b.ToInt());
+					token.SetBool(b.ToInt() > a.ToInt());
 				}
 				else if (a.IsString() && b.IsString()) {
-					token.SetBool(a.ToString() > b.ToString());
+					token.SetBool(b.ToString() > a.ToString());
 				}
 
-				token_stack.push_back(token);
+				token_stack.push_back(std::move(token));
 			}
 		}
 		break;
@@ -337,7 +420,7 @@ std::vector<Token> VM::Run(const std::string& id, clau_parser::UserType* global,
 					token.SetBool(a.ToString() < b.ToString());
 				}
 
-				token_stack.push_back(token);
+				token_stack.push_back(std::move(token));
 			}
 		}
 		break;
@@ -409,7 +492,7 @@ std::vector<Token> VM::Run(const std::string& id, clau_parser::UserType* global,
 			token.SetString(token_stack.back().workspace.reader->GetKey());
 
 			token_stack.pop_back();
-			token_stack.push_back(token);
+			token_stack.push_back(std::move(token));
 		}
 		break;
 		case FUNC::FUNC_GET_VALUE:
@@ -418,7 +501,7 @@ std::vector<Token> VM::Run(const std::string& id, clau_parser::UserType* global,
 			token.SetString(token_stack.back().workspace.reader->GetData());
 
 			token_stack.pop_back();
-			token_stack.push_back(token);
+			token_stack.push_back(std::move(token));
 		}
 		break;
 		case FUNC::FUNC_GET_IDX:
@@ -427,7 +510,7 @@ std::vector<Token> VM::Run(const std::string& id, clau_parser::UserType* global,
 			token.SetInt(token_stack.back().workspace.reader->GetIdx());
 
 			token_stack.pop_back();
-			token_stack.push_back(token);
+			token_stack.push_back(std::move(token));
 		}
 		break;
 
@@ -561,7 +644,7 @@ std::vector<Token> VM::Run(const std::string& id, clau_parser::UserType* global,
 
 			token.SetInt(x.return_value_now >= x.return_value.size());
 
-			token_stack.push_back(token);
+			token_stack.push_back(std::move(token));
 		}
 		break;
 		case FUNC::FUNC_NOT:
@@ -582,7 +665,7 @@ std::vector<Token> VM::Run(const std::string& id, clau_parser::UserType* global,
 
 			token_stack.pop_back();
 
-			token_stack.push_back(token);
+			token_stack.push_back(std::move(token));
 		}
 		break;
 		case FUNC::FUNC_IS_ITEM:
@@ -593,7 +676,7 @@ std::vector<Token> VM::Run(const std::string& id, clau_parser::UserType* global,
 
 			token_stack.pop_back();
 
-			token_stack.push_back(token);
+			token_stack.push_back(std::move(token));
 		}
 		break;
 		case FUNC::FUNC_GET_SIZE:
@@ -602,7 +685,7 @@ std::vector<Token> VM::Run(const std::string& id, clau_parser::UserType* global,
 			token.SetString(std::to_string(token_stack.back().workspace.reader->Length()));
 			token_stack.pop_back();
 
-			token_stack.push_back(token);
+			token_stack.push_back(std::move(token));
 
 			break;
 		}
