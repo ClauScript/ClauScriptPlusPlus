@@ -36,16 +36,17 @@
 
 
 
-# ClauScript++ Example...
 
+# ClauScript++ Example...
     # ToDo - end of function.?  $find = { @eu4 } FUNC_FIND DIR_START DIR END_DIR (END_FUNC?)
 
     #                           date = 2222.11.11 -> date_test = { 2222 11 11 }
     # DONE - $split = { @/date@$get /date_test @. }
-    # DONE - $clear = { /date_test }
+    # DONE - $clear_global = { date_test }
     # DONE - $remove = { /date_test }
-    # DONE - $count_global_global = { /date_test } returns ilist_size
+    # DONE - $count_global = { date_test } returns ilist_size
 
+    ## ToDo - $remove_global = { date_Test }
     ## ToDo - $EQ, $COMP<EQ, $COMP>EQ
 
     # ToDo - $pre_split?
@@ -88,7 +89,7 @@
 
     }
 
-    Event = { id = test2 $parameter = { name value is_user_type }
+    Event = { id = test3 $parameter = { name value is_user_type }
 
         $return = { 1 }
     }
@@ -121,72 +122,72 @@
         ## call
         $call = { id = iterate workspace = @$local.x@$get@$clone  event = test } # @$return_value ??
 
-        $query = {
-            workspace = { /data }
-            $insert = {
-                @x = 15
-                @y = {
-                    z = 0
-                } 
-                @"a" = 3
+        # $query = {
+            # workspace = { /data }
+            # $insert = {
+                # @x = 15
+                # @y = {
+                    # z = 0
+                # } 
+                # @"a" = 3
 
-                @provinces = {
-                    -1 = {
-                        x = 0
-                    }
-                    -2 = {
-                        x = 1
-                    }
-                }
-            }
-            $insert = {
-                x = 15
+                # @provinces = {
+                    # -1 = {
+                        # x = 0
+                    # }
+                    # -2 = {
+                        # x = 1
+                    # }
+                # }
+            # }
+            # $insert = {
+                # x = 15
 
-                provinces = {
-                    $ = {
-                        x = 0
-                        @y = wow2
-                    }
-                }
-            }
-            $update = {
-                #@x = 2 # @ : target, 2 : set value
-                "a" = 3 # condition
-                y = {
-                    @z = 4 # @ : target.
-                }
-                provinces = {
-                    $ = {
-                        x = 0
-                        @y = %event_test2 # %event_test2%'x = /./x' <- support?
-                    }
-                }
-            }
+                # provinces = {
+                    # $ = {
+                        # x = 0
+                        # @y = wow2
+                    # }
+                # }
+            # }
+            # $update = {
+                # #@x = 2 # @ : target, 2 : set value
+                # "a" = 3 # condition
+                # y = {
+                    # @z = 4 # @ : target.
+                # }
+                # provinces = {
+                    # $ = {
+                        # x = 0
+                        # @y = %event_test3 # %event_test2%'x = /./x' <- support?
+                    # }
+                # }
+            # }
 
-            #$delete = {
-            #	@x = 1 # @ : remove object., if value is 1 then remove
-            #	"a" = 3 # condition.
-            #	y = {
-            #		@z = %any # %any : condition - always.
-            #	}
-            #	provinces = {
-            #		@$ = { # $ : all usertype( array or object or mixed )
-            #			x = 1 # condition.
-            #		}
-            #	}
-            #}
-        }
+            # #$delete = {
+            # #	@x = 1 # @ : remove object., if value is 1 then remove
+            # #	"a" = 3 # condition.
+            # #	y = {
+            # #		@z = %any # %any : condition - always.
+            # #	}
+            # #	provinces = {
+            # #		@$ = { # $ : all usertype( array or object or mixed )
+            # #			x = 1 # condition.
+            # #		}
+            # #	}
+            # #}
+        # }
 
-        $search = {
-            workspace = { /Test/eu4/provinces }
-            to = { /output }
-            cond = {
-                @$ = {
-                    is_city = yes
-                    owner = "DAN"
-                }
-            }
-        }
+        # $search = {
+            # workspace = { /Test/eu4/provinces }
+            # to = { /output }
+            # cond = {
+                # @$ = {
+                    # is_city = yes
+                    # owner = "DAN"
+                # }
+            # }
+        #}
     }
 
     Event = { id = iterate $parameter = { workspace event } # recursive?
@@ -217,7 +218,31 @@
         $assign = { $local.name $parameter.name }
         $assign = { $local.value $parameter.value }
 
-        $if { $NOT = { $is_quoted_str = { @$local.name@get } } } {
+        $if { $NOT = { $is_quoted_str = { @$local.name@$get } } } {
+            $assign = { $local.name $remove_quoted = { @$local.name@$get } }
+
+            $split = { @$local.name@$get date_test @. }
+
+            #$print = { $count_global = { date_test } \n }
+            #$print = { @/date_test/%it0@$get \n }
+            $if { $COMP> = { $count_global = { date_test } 2 } } {
+                $assign = { $local.year @date_test@0@$get_global }
+                $assign = { $local.month @date_test@1@$get_global }
+                $assign = { $local.day @date_test@2@$get_global }
+
+                $if { $is_int = { @$local.year@$get } } {
+
+                    #$print = { @$local.year@$get \n }
+
+                    $if { $COMP> = { @$local.year@$get 999 } } {
+                        $set_name = { @$parameter.iter TTTTT }
+                    }
+                }
+            }
+
+            $clear_global = { date_test }				
+        }
+        $if { $is_quoted_str = { @$local.name@$get } } {
         #	$assign = { $local.name $remove_quoted = { @$local.name@$get } }
 
             $split = { @$local.name@$get date_test @. }
@@ -232,35 +257,7 @@
                 $if { $is_int = { @$local.year@$get } } {
 
                     #$print = { @$local.year@$get \n }
-                    $if { $COMP< = { @$local.year@$get 999 } } {
-                        $set_name = { @$parameter.iter $parameter.name }
-                    }
-                    $if { $COMP> = { @$local.year@$get 999 } } {
-                        $set_name = { @$parameter.iter TTTTT }
-                    }
-                }
-            }
 
-            $clear_global = { date_test }				
-        }
-        $if { $is_quoted_str = { @$local.name@get } } {
-        #	$assign = { $local.name $remove_quoted = { @$local.name@$get } }
-
-            $split = { @$local.name@$get date_test @. }
-
-            #$print = { $count_global = { date_test } \n }
-            #$print = { @/date_test/%it0@$get \n }
-            $if { $COMP> = { $count_global = { date_test } 2 } } {
-                $assign = { $local.year @date_test@0@$get_global }
-                $assign = { $local.month @date_test@1@$get_global }
-                $assign = { $local.day @date_test@2@$get_global }
-
-                $if { $is_int = { @$local.year@$get } } {
-
-                    #$print = { @$local.year@$get \n }
-                    $if { $COMP< = { @$local.year@$get 999 } } {
-                        $set_name = { @$parameter.iter $parameter.name }
-                    }
                     $if { $COMP> = { @$local.year@$get 999 } } {
                         $set_name = { @$parameter.iter TTTTT }
                     }
@@ -270,7 +267,7 @@
             $clear_global = { date_test }				
         }
 
-        $if { $NOT = { $is_quoted_str = { @$local.value@get } } } {
+        $if { $NOT = { $is_quoted_str = { @$local.value@$get } } } {
         #	$assign = { $local.name $remove_quoted = { @$local.name@$get } }
 
             $split = { @$local.value@$get date_test @. }
@@ -285,9 +282,7 @@
                 $if { $is_int = { @$local.year@$get } } {
 
                     #$print = { @$local.year@$get \n }
-                    $if { $COMP< = { @$local.year@$get 999 } } {
-                        $set_value = { @$parameter.iter $parameter.value }
-                    }
+
                     $if { $COMP> = { @$local.year@$get 999 } } {
                         $set_value = { @$parameter.iter TTTTT }
                     }
@@ -297,7 +292,7 @@
             $clear_global = { date_test }				
         }
 
-        $if { $is_quoted_str = { @$local.value@get } } {
+        $if { $is_quoted_str = { @$local.value@$get } } {
         #	$assign = { $local.name $remove_quoted = { @$local.name@$get } }
 
             $split = { @$local.value@$get date_test @. }
@@ -312,9 +307,7 @@
                 $if { $is_int = { @$local.year@$get } } {
 
                     #$print = { @$local.year@$get \n }
-                    $if { $COMP< = { @$local.year@$get 999 } } {
-                        $set_value = { @$parameter.iter $parameter.value }
-                    }
+
                     $if { $COMP> = { @$local.year@$get 999 } } {
                         $set_value = { @$parameter.iter TTTTT }
                     }
@@ -396,4 +389,5 @@
             $set_value = { @$parameter.iter $remove_quoted = { $parameter.value } }
         }
     }
+
 
