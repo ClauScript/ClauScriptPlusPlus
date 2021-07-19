@@ -88,10 +88,6 @@
 
     }
 
-    date = 2222.11.11 
-    date_test = { }
-    date_test2 = {  }
-
     Event = { id = test2 $parameter = { name value is_user_type }
 
         $return = { 1 }
