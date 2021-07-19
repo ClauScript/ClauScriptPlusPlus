@@ -13,9 +13,13 @@
 
 #include "smart_ptr.h"
 
+//#include "ArrayMap.h"
+
 
 using namespace std::literals;
 
+template <class T, class T2>
+using myMap = std::map<T, T2>;
 
 
 enum FUNC {
@@ -283,8 +287,8 @@ struct Event {
 	std::vector<Token> return_value;
 	long long return_value_now;
 	wiz::SmartPtr<std::vector<Token>> input; // ?
-	std::unordered_map<std::string, Token> parameter; // std::unordered_map
-	std::unordered_map<std::string, Token> local; // std::unordered_map
+	myMap<std::string, Token> parameter; // myMap
+	myMap<std::string, Token> local; // myMap
 };
 
 
@@ -507,14 +511,14 @@ public:
 
 
 	std::vector<Token> Run(const std::string& id, clau_parser::UserType* global,
-		std::unordered_map<std::string, Token> parameter = std::unordered_map<std::string, Token>());
+		const myMap<std::string, Token>& parameter = myMap<std::string, Token>());
 
 	void Register(Event e) {
 		_event_list.insert(std::make_pair(e.id, e));
 	}
 
 private:
-	std::unordered_map<std::string, Event> _event_list;
+	myMap<std::string, Event> _event_list;
 };
 
 

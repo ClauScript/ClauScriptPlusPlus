@@ -40,7 +40,7 @@ bool VM::EqualFunc(clau_parser::UserType* global, const clau_parser::ItemType<st
 	if (y.Get()._Starts_with("%event_"sv)) {
 		std::string event_id = y.Get().substr(7);
 
-		std::unordered_map<std::string, Token> param;
+		myMap<std::string, Token> param;
 
 		Token token;
 		token.SetString(x_name.empty() ? "EMPTY_NAME" : x_name);
@@ -422,7 +422,7 @@ bool VM::InsertFunc(clau_parser::UserType* global, clau_parser::UserType* insert
 				if (x.ut->GetItemList(it_count).Get()._Starts_with("@%event_"sv)) {
 					std::string event_id = x.ut->GetItemList(it_count).Get().substr(8);
 
-					std::unordered_map<std::string, Token> param;
+					myMap<std::string, Token> param;
 					Token token;
 					token.SetString("EMPTY_STRING");
 					param["name"] = token;
@@ -443,7 +443,7 @@ bool VM::InsertFunc(clau_parser::UserType* global, clau_parser::UserType* insert
 				if (x.ut->GetItemList(it_count).Get()._Starts_with("%event_"sv)) {
 					std::string event_id = x.ut->GetItemList(it_count).Get().substr(7);
 
-					std::unordered_map<std::string, Token> param;
+					myMap<std::string, Token> param;
 					Token token;
 					token.SetString(x.ut->GetItemList(it_count).GetName());
 					param["name"] = token;
@@ -554,7 +554,7 @@ bool VM::RemoveFunc(clau_parser::UserType* global, clau_parser::UserType* insert
 					auto temp = x.global->GetItemIdx("");
 
 					for (long long j = 0; j < temp.size(); ++j) {
-						std::unordered_map<std::string, Token> param;
+						myMap<std::string, Token> param;
 
 						Token token;
 						token.SetString("EMPTY_STRING");
@@ -595,7 +595,7 @@ bool VM::RemoveFunc(clau_parser::UserType* global, clau_parser::UserType* insert
 						}
 						auto valName = x.ut->GetItemList(it_count).Get();
 
-						std::unordered_map<std::string, Token> param;
+						myMap<std::string, Token> param;
 						Token token;
 						token.SetString(name);
 						param["name"] = token;
@@ -613,7 +613,7 @@ bool VM::RemoveFunc(clau_parser::UserType* global, clau_parser::UserType* insert
 					}
 					else {
 						for (long long j = 0; j < temp.size(); ++j) {
-							std::unordered_map<std::string, Token> param;
+							myMap<std::string, Token> param;
 							Token token;
 							token.SetString(name);
 							param["name"] = token;
@@ -757,7 +757,7 @@ bool VM::UpdateFunc(clau_parser::UserType* global, clau_parser::UserType* insert
 						}
 
 						for (long long j = 0; j < position.size(); ++j) {
-							std::unordered_map<std::string, Token> param;
+							myMap<std::string, Token> param;
 							Token token;
 							token.SetString(x.ut->GetItemList(it_count).GetName().substr(1));
 							param["name"] = token;
@@ -888,7 +888,7 @@ bool VM::SearchFunc(clau_parser::UserType* global, clau_parser::UserType* insert
 						}
 
 						for (long long j = 0; j < position.size(); ++j) {
-							std::unordered_map<std::string, Token> param;
+							myMap<std::string, Token> param;
 							Token token;
 							token.SetString(x.ut->GetItemList(it_count).GetName().substr(1));
 							param["name"] = token;

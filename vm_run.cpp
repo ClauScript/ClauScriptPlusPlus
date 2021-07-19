@@ -3,13 +3,13 @@
 
 
 std::vector<Token> VM::Run(const std::string& id, clau_parser::UserType* global,
-	std::unordered_map<std::string, Token> parameter) {
+	const myMap<std::string, Token>& parameter) {
 	Event main = _event_list[id];
 	main.parameter = parameter;
 	std::vector<Token> token_stack;
 	std::vector<Event> _stack;
 	
-	std::unordered_map<std::string, std::vector<Token>> global_var;
+	myMap<std::string, std::vector<Token>> global_var;
 
 	_stack.push_back(main);
 	int count = 0;
@@ -115,7 +115,7 @@ std::vector<Token> VM::Run(const std::string& id, clau_parser::UserType* global,
 		{
 			auto dir = token_stack.back(); token_stack.pop_back();
 
-			auto arr = global_var[dir.ToString()];
+			const auto& arr = global_var[dir.ToString()];
 			Token token;
 			token.SetInt(arr.size());
 			token_stack.push_back(std::move(token));
@@ -189,11 +189,21 @@ std::vector<Token> VM::Run(const std::string& id, clau_parser::UserType* global,
 			if (name.ToString()._Starts_with("$local."sv)) {
 				x.local[name.ToString().substr(7)] = value;
 			}
-			else if (name.ToString()._Starts_with("$parameter."sv)) {
-				x.parameter[name.ToString().substr(11)] = value;
-			}
 			else {
-				/// todo!
+				auto idx = name.ToString().find_last_of('/');
+				if (idx != std::string::npos) {
+					auto dir = name.ToString().substr(0, idx);
+					auto _name = name.ToString().substr(idx + 1);
+					auto ut = Find(global, dir);
+
+					for (int i = 0; i < ut.size(); ++i) {
+						auto arr = ut[i].workspace.reader->GetUT()->GetItemIdx(_name);
+						
+						for (int j = 0; j < arr.size(); ++j) {
+							ut[i].workspace.reader->GetUT()->GetItemList(arr[j]).Set(0, value.ToString());
+						}
+					}
+				}
 			}
 		}
 		break;
@@ -259,7 +269,7 @@ std::vector<Token> VM::Run(const std::string& id, clau_parser::UserType* global,
 		break;
 		case FUNC::FUNC_IS_QUOTED_STR:
 		{
-			auto str = token_stack.back().ToString();
+			const auto& str = token_stack.back().ToString();
 			bool chk = str.size() >= 2 && (str)[0] == str.back() && str.back() == '\"';
 
 			token_stack.pop_back();
@@ -287,7 +297,7 @@ std::vector<Token> VM::Run(const std::string& id, clau_parser::UserType* global,
 					return_value.push_back(temp[i]);
 				}
 			}
-			_stack.pop_back();
+ 			_stack.pop_back();
 			break;
 		case FUNC::CONSTANT:
 			x.now++;
