@@ -219,7 +219,7 @@
         $assign = { $local.value $parameter.value }
 
         $if { $NOT = { $is_quoted_str = { @$local.name@$get } } } {
-            $assign = { $local.name $remove_quoted = { @$local.name@$get } }
+            #$assign = { $local.name $remove_quoted = { @$local.name@$get } }
 
             $split = { @$local.name@$get date_test @. }
 
@@ -243,7 +243,7 @@
             $clear_global = { date_test }				
         }
         $if { $is_quoted_str = { @$local.name@$get } } {
-        #	$assign = { $local.name $remove_quoted = { @$local.name@$get } }
+        	$assign = { $local.name $remove_quoted = { @$local.name@$get } }
 
             $split = { @$local.name@$get date_test @. }
 
@@ -293,7 +293,7 @@
         }
 
         $if { $is_quoted_str = { @$local.value@$get } } {
-        #	$assign = { $local.name $remove_quoted = { @$local.name@$get } }
+        	$assign = { $local.name $remove_quoted = { @$local.name@$get } }
 
             $split = { @$local.value@$get date_test @. }
 
